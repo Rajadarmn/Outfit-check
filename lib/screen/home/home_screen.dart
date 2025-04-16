@@ -92,10 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
 
-      // Membuka Hive box dengan await
       final box = await Hive.openBox('historyBox');
-
-      // Membuat model HistoryModel dan memastikan data valid
       final history = HistoryModel(
         activity: result['acara'] ?? 'Unknown Activity',
         pria: GenderOutfit(
@@ -120,7 +117,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
-      // Menambahkan history ke box Hive
       await box.add(history.toMap());
     } catch (e) {
       setState(() {
@@ -132,6 +128,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final appBarHeight = AppBar().preferredSize.height;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -139,108 +139,179 @@ class _HomeScreenState extends State<HomeScreen> {
           'Cek Outfit Kamu Sekarang',
           style: TextStyle(
             color: Colors.black,
-            fontSize: 24,
+            fontSize: 20, // Reduced font size for better fit
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white.withOpacity(0.7),
         elevation: 0,
         flexibleSpace: ClipRRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.transparent,
             ),
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 63),
-              TextField(
-                controller: _activityController,
-                decoration: InputDecoration(
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 30, vertical: 23),
-                  hintText:
-                      'Contoh: pesta malam, cuaca hujan, interview kerja...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  filled: true,
-                  fillColor: Colors.lightGreen.withOpacity(0.8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: _isLoading ? null : generateOutfit,
-                label: Text(
-                  _isLoading ? 'Generating ...' : 'Generate Outfit',
-                  style: const TextStyle(color: Colors.white),
-                ),
-                icon: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 1,
-                        ),
-                      )
-                    : const Icon(Icons.checkroom, color: Colors.white),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  backgroundColor: Colors.green,
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (topWearPria.isNotEmpty || bottomWearPria.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Text(
-                        activity,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Outfit untuk pria
-                    _buildGlassCard("Outfit Pria", topWearPria, bottomWearPria,
-                        shoesPria, accessoriesPria),
-                    const SizedBox(height: 16),
-                    // Outfit untuk wanita
-                    _buildGlassCard("Outfit Wanita", topWearWanita,
-                        bottomWearWanita, shoesWanita, accessoriesWanita),
-                  ],
-                ),
-              if (errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Text(
-                    errorMessage!,
-                    style: const TextStyle(
-                        color: Colors.red, fontWeight: FontWeight.bold),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
+       body: SingleChildScrollView(
+         padding: EdgeInsets.only(
+           top: appBarHeight + statusBarHeight + 20,
+           left: 16,
+           right: 16,
+           bottom: 20,
+         ),
+         child: Column(
+           crossAxisAlignment: CrossAxisAlignment.start,
+           children: [
+             // Input Section
+             Container(
+               padding: const EdgeInsets.all(16),
+               decoration: BoxDecoration(
+                 color: Colors.white,
+                 borderRadius: BorderRadius.circular(12),
+                 boxShadow: [
+                   BoxShadow(
+                     color: Colors.black.withOpacity(0.1),
+                     blurRadius: 10,
+                     offset: const Offset(0, 4),
+                   ),
+                 ],
+               ),
+               child: Column(
+                 children: [
+                   TextField(
+                     controller: _activityController,
+                     decoration: InputDecoration(
+                       contentPadding: const EdgeInsets.symmetric(
+                           horizontal: 20, vertical: 16),
+                       hintText: 'Contoh: pesta malam, cuaca hujan...',
+                       border: OutlineInputBorder(
+                         borderRadius: BorderRadius.circular(10),
+                         borderSide: BorderSide.none,
+                       ),
+                       filled: true,
+                       fillColor: Colors.grey[100],
+                       hintStyle: TextStyle(color: Colors.grey[600]),
+                     ),
+                   ),
+                   const SizedBox(height: 16),
+                   SizedBox(
+                     width: double.infinity,
+                     child: ElevatedButton(
+                       onPressed: _isLoading ? null : generateOutfit,
+                       style: ElevatedButton.styleFrom(
+                         backgroundColor: Colors.lightGreen[700],
+                         shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(10),
+                         ),
+                         padding: const EdgeInsets.symmetric(vertical: 16),
+                       ),
+                       child: _isLoading
+                           ? const Row(
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               children: [
+                                 SizedBox(
+                                   width: 20,
+                                   height: 20,
+                                   child: CircularProgressIndicator(
+                                     color: Colors.white,
+                                     strokeWidth: 2,
+                                   ),
+                                 ),
+                                 SizedBox(width: 8),
+                                 Text(
+                                   'Generating...',
+                                   style: TextStyle(
+                                       fontSize: 16, color: Colors.white),
+                                 ),
+                               ],
+                             )
+                           : const Row(
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               children: [
+                                 Icon(Icons.checkroom, color: Colors.white),
+                                 SizedBox(width: 8),
+                                 Text(
+                                   'Generate Outfit',
+                                   style: TextStyle(
+                                       fontSize: 16, color: Colors.white),
+                                 ),
+                               ],
+                             ),
+                     ),
+                   ),
+                 ],
+               ),
+             ),
+       
+             const SizedBox(height: 24),
+       
+             // Results Section
+             if (topWearPria.isNotEmpty || bottomWearPria.isNotEmpty)
+               Column(
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                   Center(
+                     child: Text(
+                       activity,
+                       style: const TextStyle(
+                         fontSize: 22,
+                         fontWeight: FontWeight.bold,
+                         color: Colors.black87,
+                       ),
+                       textAlign: TextAlign.center,
+                     ),
+                   ),
+                   const SizedBox(height: 20),
+       
+                   // Male Outfit Card
+                   _buildOutfitCard(
+                     context,
+                     "Outfit Pria",
+                     topWearPria,
+                     bottomWearPria,
+                     shoesPria,
+                     accessoriesPria,
+                     Colors.blue[50]!,
+                   ),
+                   const SizedBox(height: 16),
+       
+                   // Female Outfit Card
+                   _buildOutfitCard(
+                     context,
+                     "Outfit Wanita",
+                     topWearWanita,
+                     bottomWearWanita,
+                     shoesWanita,
+                     accessoriesWanita,
+                     Colors.pink[50]!,
+                   ),
+                 ],
+               ),
+       
+             if (errorMessage != null)
+               Padding(
+                 padding: const EdgeInsets.only(top: 16.0),
+                 child: Container(
+                   padding: const EdgeInsets.all(12),
+                   decoration: BoxDecoration(
+                     color: Colors.red[50],
+                     borderRadius: BorderRadius.circular(8),
+                   ),
+                   child: Text(
+                     errorMessage!,
+                     style: TextStyle(
+                       color: Colors.red[800],
+                       fontWeight: FontWeight.w500,
+                     ),
+                   ),
+                 ),
+               ),
+           ],
+         ),
+       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -248,60 +319,80 @@ class _HomeScreenState extends State<HomeScreen> {
             MaterialPageRoute(builder: (context) => const HistoryScreen()),
           );
         },
-        backgroundColor: Colors.lightGreen,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.history, color: Colors.white),
+        backgroundColor: Colors.lightGreen[700],
+        elevation: 4,
+        child: const Icon(Icons.history, color: Colors.white, size: 28),
       ),
     );
   }
 
-  Widget _buildGlassCard(String title, List<String> topWear,
-      List<String> bottomWear, List<String> shoes, List<String> accessories) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(15),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+  Widget _buildOutfitCard(
+    BuildContext context,
+    String title,
+    List<String> topWear,
+    List<String> bottomWear,
+    List<String> shoes,
+    List<String> accessories,
+    Color cardColor,
+  ) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.black),
-              ),
-              const SizedBox(height: 8),
-              _buildOutfitItem("Atasan", topWear),
-              _buildOutfitItem("Bawahan", bottomWear),
-              _buildOutfitItem("Sepatu", shoes),
-              _buildOutfitItem("Aksesoris", accessories),
-            ],
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-        ),
+          const SizedBox(height: 12),
+          _buildOutfitItem("Atasan", topWear),
+          _buildOutfitItem("Bawahan", bottomWear),
+          _buildOutfitItem("Sepatu", shoes),
+          _buildOutfitItem("Aksesoris", accessories),
+        ],
       ),
     );
   }
 
   Widget _buildOutfitItem(String title, List<String> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "$title:",
-          style: const TextStyle(color: Colors.black),
-        ),
-        ...items.map((item) =>
-            Text("- $item", style: const TextStyle(color: Colors.black))),
-        const SizedBox(height: 8),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87),
+          ),
+          const SizedBox(height: 4),
+          ...items.map((item) => Padding(
+                padding: const EdgeInsets.only(left: 8.0, top: 4),
+                child: Text(
+                  "• $item",
+                  style: const TextStyle(fontSize: 15, color: Colors.black87),
+                ),
+              )),
+        ],
+      ),
     );
   }
 }
