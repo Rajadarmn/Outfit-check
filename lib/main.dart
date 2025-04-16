@@ -10,7 +10,7 @@ void main() async {
 
   runApp(   
     DevicePreview(
-      enabled: false, // Matikan DevicePreview saat build untuk release
+      enabled: true, // Matikan DevicePreview saat build untuk release
       builder: (context) => const MainApp(),
     ),
   );
